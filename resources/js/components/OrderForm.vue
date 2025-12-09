@@ -1,17 +1,30 @@
 <template>
-    <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-        <h2 class="text-2xl font-bold mb-4 dark:text-white">Place Order</h2>
+    <div>
+        <Orderbook
+            v-if="form.symbol"
+            :symbol="form.symbol"
+            :buy-orders="buyOrders"
+            :sell-orders="sellOrders"
+        />
 
-        <form @submit.prevent="submitOrder">
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2 dark:text-gray-200">Symbol</label>
-                <input
-                    v-model="form.symbol"
-                    type="text"
-                    class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600"
-                    required
-                />
-            </div>
+        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow mt-6">
+            <h2 class="text-2xl font-bold mb-4 dark:text-white">Place Order</h2>
+
+            <form @submit.prevent="submitOrder">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium mb-2 dark:text-gray-200">Symbol</label>
+                    <select
+                        v-model="form.symbol"
+                        @change="fetchOrderbook"
+                        class="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                        required
+                    >
+                        <option value="" disabled>Select a symbol</option>
+                        <option v-for="symbol in availableSymbols" :key="symbol" :value="symbol">
+                            {{ symbol }}
+                        </option>
+                    </select>
+                </div>
 
             <div class="mb-4">
                 <label class="block text-sm font-medium mb-2 dark:text-gray-200">Side</label>
@@ -77,21 +90,21 @@
                 {{ success }}
             </div>
         </form>
+        </div>
     </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import Orderbook from './Orderbook.vue';
 
-const props = defineProps({
-    initialSymbol: {
-        type: String,
-        default: 'BTC'
-    }
-});
+const availableSymbols = ref([]);
+const buyOrders = ref([]);
+const sellOrders = ref([]);
+let echoChannel = null;
 
 const form = ref({
-    symbol: props.initialSymbol,
+    symbol: '',
     side: 'buy',
     price: '',
     amount: ''
@@ -100,6 +113,36 @@ const form = ref({
 const loading = ref(false);
 const error = ref('');
 const success = ref('');
+
+const subscribeToSymbol = (symbol) => {
+    if (echoChannel) {
+        window.Echo.leave(`symbol.${echoChannel}`);
+    }
+
+    echoChannel = symbol;
+    window.Echo.channel(`symbol.${symbol}`)
+        .listen('OrderMatched', () => {
+            fetchOrderbook();
+        });
+};
+
+const fetchOrderbook = async () => {
+    if (!form.value.symbol) {
+        return;
+    }
+
+    try {
+        const response = await window.axios.get('/api/orders', {
+            params: { symbol: form.value.symbol }
+        });
+        buyOrders.value = response.data.buy_orders;
+        sellOrders.value = response.data.sell_orders;
+
+        subscribeToSymbol(form.value.symbol);
+    } catch (err) {
+        console.error('Failed to fetch orderbook:', err);
+    }
+};
 
 const totalVolume = computed(() => {
     const total = (parseFloat(form.value.price) || 0) * (parseFloat(form.value.amount) || 0);
@@ -118,6 +161,7 @@ const submitOrder = async () => {
         form.value.price = '';
         form.value.amount = '';
 
+        await fetchOrderbook();
         window.dispatchEvent(new CustomEvent('order-created'));
     } catch (err) {
         error.value = err.response?.data?.error || 'Failed to place order';
@@ -125,4 +169,16 @@ const submitOrder = async () => {
         loading.value = false;
     }
 };
+
+onMounted(async () => {
+    const response = await window.axios.get('/api/orders');
+    availableSymbols.value = response.data.user_symbols;
+
+    if (availableSymbols.value.length > 0) {
+        form.value.symbol = availableSymbols.value[0];
+        await fetchOrderbook();
+    }
+
+    window.addEventListener('order-created', fetchOrderbook);
+});
 </script>

@@ -6,7 +6,7 @@
             <div>
                 <h3 class="text-lg font-semibold mb-2 text-green-600 dark:text-green-400">Buy Orders</h3>
                 <div class="space-y-1">
-                    <div v-for="order in buyOrders" :key="order.price" class="flex justify-between text-sm">
+                    <div v-for="(order, index) in buyOrders" :key="index" class="flex justify-between text-sm">
                         <span class="text-green-600 dark:text-green-400">{{ order.price }}</span>
                         <span class="dark:text-gray-300">{{ order.total_amount }}</span>
                     </div>
@@ -17,7 +17,7 @@
             <div>
                 <h3 class="text-lg font-semibold mb-2 text-red-600 dark:text-red-400">Sell Orders</h3>
                 <div class="space-y-1">
-                    <div v-for="order in sellOrders" :key="order.price" class="flex justify-between text-sm">
+                    <div v-for="(order, index) in sellOrders" :key="index" class="flex justify-between text-sm">
                         <span class="text-red-600 dark:text-red-400">{{ order.price }}</span>
                         <span class="dark:text-gray-300">{{ order.total_amount }}</span>
                     </div>
@@ -29,38 +29,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-
-const props = defineProps({
+defineProps({
     symbol: {
         type: String,
-        default: 'BTC'
+        required: true
+    },
+    buyOrders: {
+        type: Array,
+        default: () => []
+    },
+    sellOrders: {
+        type: Array,
+        default: () => []
     }
-});
-
-const buyOrders = ref([]);
-const sellOrders = ref([]);
-
-const fetchOrderbook = async () => {
-    try {
-        const response = await window.axios.get('/api/orders', {
-            params: { symbol: props.symbol }
-        });
-        buyOrders.value = response.data.buy_orders;
-        sellOrders.value = response.data.sell_orders;
-    } catch (err) {
-        console.error('Failed to fetch orderbook:', err);
-    }
-};
-
-onMounted(() => {
-    fetchOrderbook();
-
-    window.Echo.channel(`symbol.${props.symbol}`)
-        .listen('OrderMatched', () => {
-            fetchOrderbook();
-        });
-
-    window.addEventListener('order-created', fetchOrderbook);
 });
 </script>

@@ -42,10 +42,17 @@ class OrderController extends Controller
             ->limit(20)
             ->get();
 
+        $userSymbols = $request->user()
+            ->assets()
+            ->pluck('symbol')
+            ->unique()
+            ->values();
+
         return response()->json([
             'symbol' => $symbol,
             'buy_orders' => $buyOrders,
             'sell_orders' => $sellOrders,
+            'user_symbols' => $userSymbols,
         ]);
     }
 
