@@ -12,6 +12,8 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    use \App\Traits\FormatsCrypto;
+
     public function __construct(protected OrderService $orderService) {}
 
     public function index(Request $request): JsonResponse
@@ -32,7 +34,11 @@ class OrderController extends Controller
             ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
             ->groupBy('price')
             ->limit(20)
-            ->get();
+            ->get()
+            ->map(fn ($order) => [
+                'price' => $this->formatPrice($order->price),
+                'total_amount' => $this->formatAmount($order->total_amount),
+            ]);
 
         $sellOrders = (clone $query)
             ->where('side', 'sell')
@@ -40,7 +46,11 @@ class OrderController extends Controller
             ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
             ->groupBy('price')
             ->limit(20)
-            ->get();
+            ->get()
+            ->map(fn ($order) => [
+                'price' => $this->formatPrice($order->price),
+                'total_amount' => $this->formatAmount($order->total_amount),
+            ]);
 
         $userSymbols = $request->user()
             ->assets()

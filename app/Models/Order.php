@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\FormatsCrypto;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use FormatsCrypto;
+
     public const STATUS_OPEN = 1;
 
     public const STATUS_FILLED = 2;
@@ -24,6 +28,8 @@ class Order extends Model
         'status',
     ];
 
+    protected $appends = ['formatted_price', 'formatted_amount', 'formatted_filled_amount'];
+
     protected function casts(): array
     {
         return [
@@ -31,6 +37,27 @@ class Order extends Model
             'amount' => 'decimal:8',
             'filled_amount' => 'decimal:8',
         ];
+    }
+
+    protected function formattedPrice(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatPrice($this->price),
+        );
+    }
+
+    protected function formattedAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatAmount($this->amount),
+        );
+    }
+
+    protected function formattedFilledAmount(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->formatAmount($this->filled_amount),
+        );
     }
 
     public function user(): BelongsTo

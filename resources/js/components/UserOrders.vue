@@ -14,13 +14,13 @@
                         <span :class="order.side === 'buy' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
                             {{ order.side.toUpperCase() }}
                         </span>
-                        @ {{ order.price }}
+                        @ {{ order.formatted_price }}
                     </p>
                 </div>
 
                 <div class="text-right">
                     <p class="text-sm dark:text-white">
-                        {{ order.filled_amount }} / {{ order.amount }}
+                        {{ order.formatted_filled_amount }} / {{ order.formatted_amount }}
                     </p>
                     <p class="text-xs" :class="getStatusClass(order.status)">
                         {{ getStatusText(order.status) }}

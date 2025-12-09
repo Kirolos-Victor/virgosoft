@@ -4,7 +4,7 @@
 
         <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
             <p class="text-sm text-gray-600 dark:text-gray-300">Balance (USD)</p>
-            <p class="text-2xl font-bold dark:text-white">{{ user?.balance || '0.00000000' }}</p>
+            <p class="text-2xl font-bold dark:text-white">{{ user?.balance || '0' }}</p>
         </div>
 
         <h3 class="text-lg font-semibold mb-2 dark:text-white">Assets</h3>
