@@ -18,12 +18,6 @@
                         <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('dashboard') ? 'border-blue-500' : 'border-transparent' }} text-sm font-medium dark:text-gray-300">
                             Dashboard
                         </a>
-                        <a href="{{ route('wallet') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('wallet') ? 'border-blue-500' : 'border-transparent' }} text-sm font-medium dark:text-gray-300">
-                            Wallet
-                        </a>
-                        <a href="{{ route('orders') }}" class="inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('orders') ? 'border-blue-500' : 'border-transparent' }} text-sm font-medium dark:text-gray-300">
-                            Orders
-                        </a>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
