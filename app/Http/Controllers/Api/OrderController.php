@@ -49,6 +49,16 @@ class OrderController extends Controller
         ]);
     }
 
+    public function userOrders(Request $request): JsonResponse
+    {
+        $orders = Order::query()
+            ->where('user_id', $request->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($orders);
+    }
+
     public function store(PlaceOrderRequest $request): JsonResponse
     {
         try {

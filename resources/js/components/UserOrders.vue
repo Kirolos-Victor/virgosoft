@@ -47,7 +47,7 @@ const orders = ref([]);
 
 const fetchOrders = async () => {
     try {
-        const response = await window.axios.get('/api/orders');
+        const response = await window.axios.get('/api/user/orders');
         orders.value = response.data;
     } catch (err) {
         console.error('Failed to fetch orders:', err);
