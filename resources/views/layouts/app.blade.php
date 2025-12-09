@@ -38,9 +38,10 @@
             </div>
         </div>
     </nav>
-
-    <main class="py-10" id="app">
-        @yield('content')
+    <main class="py-10">
+        <div id="app">
+            @yield('content')
+        </div>
     </main>
 </body>
 </html>

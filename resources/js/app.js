@@ -5,21 +5,18 @@ import Orderbook from './components/Orderbook.vue';
 import WalletOverview from './components/WalletOverview.vue';
 import UserOrders from './components/UserOrders.vue';
 
-// Only mount Vue if #app element exists
-if (document.getElementById('app')) {
-    const app = createApp({
-        components: {
-            OrderForm,
-            Orderbook,
-            WalletOverview,
-            UserOrders,
-        },
-    });
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', () => {
+    const appElement = document.getElementById('app');
 
-    app.component('order-form', OrderForm);
-    app.component('orderbook', Orderbook);
-    app.component('wallet-overview', WalletOverview);
-    app.component('user-orders', UserOrders);
+    if (appElement) {
+        const app = createApp({});
 
-    app.mount('#app');
-}
+        app.component('order-form', OrderForm);
+        app.component('orderbook', Orderbook);
+        app.component('wallet-overview', WalletOverview);
+        app.component('user-orders', UserOrders);
+
+        app.mount('#app');
+    }
+});
