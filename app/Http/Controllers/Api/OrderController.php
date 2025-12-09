@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelOrderRequest;
 use App\Http\Requests\PlaceOrderRequest;
+use App\Http\Resources\OrderbookResource;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderService;
 use Illuminate\Http\JsonResponse;
@@ -12,45 +14,12 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    use \App\Traits\FormatsCrypto;
-
     public function __construct(protected OrderService $orderService) {}
 
     public function index(Request $request): JsonResponse
     {
         $symbol = $request->get('symbol');
-
-        $query = Order::query()
-            ->where('status', Order::STATUS_OPEN)
-            ->orderBy('price');
-
-        if ($symbol) {
-            $query->where('symbol', $symbol);
-        }
-
-        $buyOrders = (clone $query)
-            ->where('side', 'buy')
-            ->orderBy('price', 'desc')
-            ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
-            ->groupBy('price')
-            ->limit(20)
-            ->get()
-            ->map(fn ($order) => [
-                'price' => $this->formatPrice($order->price),
-                'total_amount' => $this->formatAmount($order->total_amount),
-            ]);
-
-        $sellOrders = (clone $query)
-            ->where('side', 'sell')
-            ->orderBy('price', 'asc')
-            ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
-            ->groupBy('price')
-            ->limit(20)
-            ->get()
-            ->map(fn ($order) => [
-                'price' => $this->formatPrice($order->price),
-                'total_amount' => $this->formatAmount($order->total_amount),
-            ]);
+        $orderbookData = Order::getOrderbookData($symbol);
 
         $userSymbols = $request->user()
             ->assets()
@@ -60,20 +29,19 @@ class OrderController extends Controller
 
         return response()->json([
             'symbol' => $symbol,
-            'buy_orders' => $buyOrders,
-            'sell_orders' => $sellOrders,
+            'buy_orders' => OrderbookResource::collection($orderbookData['buy_orders']),
+            'sell_orders' => OrderbookResource::collection($orderbookData['sell_orders']),
             'user_symbols' => $userSymbols,
         ]);
     }
 
     public function userOrders(Request $request): JsonResponse
     {
-        $orders = Order::query()
-            ->where('user_id', $request->user()->id)
+        $orders = Order::forUser($request->user()->id)
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return response()->json($orders);
+        return response()->json(OrderResource::collection($orders));
     }
 
     public function store(PlaceOrderRequest $request): JsonResponse
@@ -89,7 +57,7 @@ class OrderController extends Controller
 
             return response()->json([
                 'message' => 'Order placed successfully',
-                'order' => $order,
+                'order' => new OrderResource($order),
             ], 201);
         } catch (\Exception $e) {
             return response()->json([

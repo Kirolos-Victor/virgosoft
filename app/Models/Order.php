@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\FormatsCrypto;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -88,5 +89,60 @@ class Order extends Model
     public function getRemainingAmount(): string
     {
         return bcsub($this->amount, $this->filled_amount, 8);
+    }
+
+    public function scopeOpen(Builder $query): Builder
+    {
+        return $query->where('status', self::STATUS_OPEN);
+    }
+
+    public function scopeForSymbol(Builder $query, string $symbol): Builder
+    {
+        return $query->where('symbol', $symbol);
+    }
+
+    public function scopeForUser(Builder $query, int $userId): Builder
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    public function scopeBuyOrders(Builder $query): Builder
+    {
+        return $query->where('side', 'buy');
+    }
+
+    public function scopeSellOrders(Builder $query): Builder
+    {
+        return $query->where('side', 'sell');
+    }
+
+    public static function getOrderbookData(?string $symbol = null): array
+    {
+        $query = static::open()->orderBy('price');
+
+        if ($symbol) {
+            $query->forSymbol($symbol);
+        }
+
+        $buyOrders = (clone $query)
+            ->buyOrders()
+            ->orderBy('price', 'desc')
+            ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
+            ->groupBy('price')
+            ->limit(20)
+            ->get();
+
+        $sellOrders = (clone $query)
+            ->sellOrders()
+            ->orderBy('price', 'asc')
+            ->selectRaw('price, SUM(amount - filled_amount) as total_amount')
+            ->groupBy('price')
+            ->limit(20)
+            ->get();
+
+        return [
+            'buy_orders' => $buyOrders,
+            'sell_orders' => $sellOrders,
+        ];
     }
 }

@@ -59,4 +59,14 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class);
     }
+
+    public static function createWithInitialBalance(array $attributes): self
+    {
+        return static::create([
+            'name' => $attributes['name'],
+            'email' => $attributes['email'],
+            'password' => $attributes['password'],
+            'balance' => '10000.00000000',
+        ]);
+    }
 }
