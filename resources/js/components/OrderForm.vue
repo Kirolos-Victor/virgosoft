@@ -107,6 +107,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import Orderbook from './Orderbook.vue';
+import WalletOverview from './WalletOverview.vue';
+import UserOrders from './UserOrders.vue';
+
+const props = defineProps({
+    userId: {
+        type: Number,
+        required: true
+    }
+});
 
 const availableSymbols = ref([]);
 const buyOrders = ref([]);
