@@ -76,8 +76,9 @@ class MatchEngine
             }
 
             $tradePrice = $sellOrder->price;
-            $commission = bcmul($fillAmount, '0.015', 8);
-            $netAmount = bcsub($fillAmount, $commission, 8);
+            $totalCost = bcmul($tradePrice, $fillAmount, 8);
+            $commissionUSD = bcmul($totalCost, '0.015', 8);
+            $netUSD = bcsub($totalCost, $commissionUSD, 8);
 
             if (! $buyerAssetBase) {
                 $buyerAssetBase = Asset::create([
@@ -88,13 +89,12 @@ class MatchEngine
                 ]);
             }
 
-            $buyerAssetBase->increment('amount', $netAmount);
+            $buyerAssetBase->increment('amount', $fillAmount);
 
             $sellerAssetBase->decrement('locked_amount', $fillAmount);
             $sellerAssetBase->decrement('amount', $fillAmount);
 
-            $totalCost = bcmul($tradePrice, $fillAmount, 8);
-            $sellUser->increment('balance', $totalCost);
+            $sellUser->increment('balance', $netUSD);
 
             $buyOrder->increment('filled_amount', $fillAmount);
             $sellOrder->increment('filled_amount', $fillAmount);
@@ -113,7 +113,7 @@ class MatchEngine
                 'symbol' => $buyOrder->symbol,
                 'price' => $tradePrice,
                 'amount' => $fillAmount,
-                'commission' => $commission,
+                'commission' => $commissionUSD,
             ]);
 
             event(new OrderMatched($trade, $buyOrder, $sellOrder));
