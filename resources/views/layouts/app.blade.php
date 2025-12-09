@@ -26,8 +26,14 @@
                         </a>
                     </div>
                 </div>
-                <div class="flex items-center">
-                    <span class="dark:text-gray-300">{{ auth()->user()->name ?? 'Guest' }}</span>
+                <div class="flex items-center gap-4">
+                    <span class="dark:text-gray-300">{{ auth()->user()->name }}</span>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="text-sm text-red-600 dark:text-red-400 hover:text-red-800">
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

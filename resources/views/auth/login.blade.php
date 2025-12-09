@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login - {{ config('app.name') }}</title>
+    @vite(['resources/css/app.css'])
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <div>
+                <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+                    Sign in to {{ config('app.name') }}
+                </h2>
+                <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                    Or
+                    <a href="{{ route('register') }}" class="font-medium text-blue-600 hover:text-blue-500">
+                        create a new account
+                    </a>
+                </p>
+            </div>
+
+            <form class="mt-8 space-y-6" action="{{ route('login') }}" method="POST">
+                @csrf
+
+                @if ($errors->any())
+                    <div class="rounded-md bg-red-50 dark:bg-red-900 p-4">
+                        <div class="text-sm text-red-700 dark:text-red-200">
+                            @foreach ($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="rounded-md shadow-sm space-y-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Email address
+                        </label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            required
+                            value="{{ old('email') }}"
+                            class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="Email address"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            class="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                            placeholder="Password"
+                        >
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input
+                            id="remember"
+                            name="remember"
+                            type="checkbox"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        >
+                        <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                            Remember me
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <button
+                        type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                        Sign in
+                    </button>
+                </div>
+
+                <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+                    <p class="mb-2">Demo Accounts:</p>
+                    <p>alice@example.com / password</p>
+                    <p>bob@example.com / password</p>
+                    <p>charlie@example.com / password</p>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
